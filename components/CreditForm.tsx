@@ -10,22 +10,48 @@ interface Props {
   form: FormularioCredito;
   onChange: (form: FormularioCredito) => void;
   onReset: () => void;
-  tipoCredito: string;
 }
 
 function generateId() {
   return Math.random().toString(36).slice(2, 9);
 }
 
-const PLACEHOLDERS_MONTO: Record<string, string> = {
-  libre:       "Ej: 20.000.000",
-  vehiculo:    "Ej: 45.000.000",
-  educativo:   "Ej: 15.000.000",
-  hipotecario: "Ej: 200.000.000",
-  otro:        "Ej: 10.000.000",
-};
+// ── Formatea un número como 1.000.000 (separador de miles colombiano) ──
+function formatearMiles(valor: number): string {
+  if (!valor) return "";
+  return new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(valor);
+}
 
-export default function CreditForm({ form, onChange, onReset, tipoCredito }: Props) {
+function parsearMiles(texto: string): number {
+  const limpio = texto.replace(/\./g, "").replace(/[^\d]/g, "");
+  return parseInt(limpio) || 0;
+}
+
+// ── Input de dinero con formato automático ──
+function InputMoneda({
+  value,
+  onChange,
+  placeholder,
+  className,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      value={formatearMiles(value)}
+      onChange={(e) => onChange(parsearMiles(e.target.value))}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+}
+
+export default function CreditForm({ form, onChange, onReset }: Props) {
   const [plazoEnAnios, setPlazoEnAnios] = useState(false);
   const [anios, setAnios] = useState("");
   const [mostrarTooltipTasa, setMostrarTooltipTasa] = useState(false);
@@ -64,21 +90,17 @@ export default function CreditForm({ form, onChange, onReset, tipoCredito }: Pro
     set("otrosCostos", form.otrosCostos.filter((c) => c.id !== id));
   }
 
-  const placeholderMonto = PLACEHOLDERS_MONTO[tipoCredito] ?? "Ej: 20.000.000";
-
-  // Progreso del formulario
-  const pasos = [
+  const progreso = [
     form.valorCredito > 0,
     form.plazoMeses > 0,
     form.tasa > 0,
-    true, // sistema siempre tiene valor por defecto
-  ];
-  const progreso = pasos.filter(Boolean).length;
+    true,
+  ].filter(Boolean).length;
 
   return (
     <div className="card space-y-0 p-0 overflow-hidden">
 
-      {/* Cabecera del formulario */}
+      {/* Cabecera */}
       <div className="px-6 pt-6 pb-4 border-b border-slate-100">
         <div className="flex items-center justify-between mb-3">
           <div>
@@ -92,7 +114,6 @@ export default function CreditForm({ form, onChange, onReset, tipoCredito }: Pro
             Limpiar
           </button>
         </div>
-
         {/* Barra de progreso */}
         <div className="flex items-center gap-1.5">
           {["Monto", "Plazo", "Tasa", "Sistema"].map((label, i) => (
@@ -107,32 +128,21 @@ export default function CreditForm({ form, onChange, onReset, tipoCredito }: Pro
       <div className="px-6 py-5 space-y-6">
 
         {/* ── 1. Monto ── */}
-        <FormSection
-          icon="💰"
-          title="¿Cuánto dinero necesitas?"
-          hint="Ingresa el valor total del crédito que quieres solicitar."
-        >
+        <FormSection icon="💰" title="¿Cuánto dinero necesitas?" hint="Valor total del crédito que quieres solicitar.">
           <label className="label-base">Monto solicitado (COP)</label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold pointer-events-none">$</span>
-            <input
-              type="number"
-              min={0}
+            <InputMoneda
+              value={form.valorCredito}
+              onChange={(v) => set("valorCredito", v)}
+              placeholder="Ej: 20.000.000"
               className="input-base pl-8"
-              placeholder={placeholderMonto}
-              value={form.valorCredito || ""}
-              onChange={(e) => set("valorCredito", parseFloat(e.target.value) || 0)}
             />
           </div>
         </FormSection>
 
         {/* ── 2. Plazo ── */}
-        <FormSection
-          icon="📅"
-          title="¿En cuánto tiempo lo pagarás?"
-          hint="Define la duración del crédito en meses o años."
-        >
-          {/* Toggle meses / años */}
+        <FormSection icon="📅" title="¿En cuánto tiempo lo pagarás?" hint="Define la duración del crédito.">
           <div className="flex gap-2 mb-3">
             {(["meses", "años"] as const).map((modo) => (
               <button
@@ -159,36 +169,26 @@ export default function CreditForm({ form, onChange, onReset, tipoCredito }: Pro
             onChange={(e) => handlePlazo(e.target.value)}
           />
           {plazoEnAnios && form.plazoMeses > 0 && (
-            <p className="text-xs text-blue-600 font-medium mt-1.5">
-              = {form.plazoMeses} meses en total
-            </p>
+            <p className="text-xs text-blue-600 font-medium mt-1.5">= {form.plazoMeses} meses en total</p>
           )}
         </FormSection>
 
-        {/* ── 3. Tasa de interés ── */}
-        <FormSection
-          icon="📊"
-          title="¿Qué tasa te ofrecieron?"
-          hint="Ingresa la tasa de interés tal como la informó la entidad financiera."
-        >
+        {/* ── 3. Tasa ── */}
+        <FormSection icon="📊" title="¿Qué tasa te ofrecieron?" hint="Ingresa la tasa tal como la informó la entidad financiera.">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label-base">Tipo de tasa</label>
-              <div className="relative">
-                <select
-                  className="select-base"
-                  value={form.tipoTasa}
-                  onChange={(e) => set("tipoTasa", e.target.value as TipoTasa)}
-                >
-                  <option value="efectiva_anual">Efectiva anual (E.A.)</option>
-                  <option value="nominal_mensual">Nominal mensual (N.M.V.)</option>
-                </select>
-              </div>
+              <select
+                className="select-base"
+                value={form.tipoTasa}
+                onChange={(e) => set("tipoTasa", e.target.value as TipoTasa)}
+              >
+                <option value="efectiva_anual">Efectiva anual (E.A.)</option>
+                <option value="nominal_mensual">Nominal mensual (N.M.V.)</option>
+              </select>
             </div>
             <div>
-              <label className="label-base">
-                Tasa {form.tipoTasa === "efectiva_anual" ? "anual" : "mensual"}
-              </label>
+              <label className="label-base">Tasa {form.tipoTasa === "efectiva_anual" ? "anual" : "mensual"}</label>
               <div className="relative">
                 <input
                   type="number"
@@ -203,39 +203,26 @@ export default function CreditForm({ form, onChange, onReset, tipoCredito }: Pro
               </div>
             </div>
           </div>
-
-          {/* Tooltip de tasas */}
-          <div className="mt-2">
-            <button
-              type="button"
-              onClick={() => setMostrarTooltipTasa((v) => !v)}
-              className="text-xs text-blue-500 hover:text-blue-700 flex items-center gap-1 transition-colors"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {mostrarTooltipTasa ? "Ocultar explicación" : "¿Cuál es la diferencia?"}
-            </button>
-            {mostrarTooltipTasa && (
-              <div className="mt-2 bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-800 space-y-1.5 animate-fade-in">
-                <p><strong>Efectiva anual (E.A.):</strong> La tasa que realmente pagas en un año. Se convierte automáticamente a mensual con la fórmula: <code className="bg-blue-100 px-1 rounded">(1+EA)^(1/12)−1</code>.</p>
-                <p><strong>Nominal mensual (N.M.V.):</strong> La tasa que se aplica directamente cada mes. Úsala si el banco te cotizó en mensual vencido.</p>
-              </div>
-            )}
-            {form.tipoTasa === "nominal_mensual" && !mostrarTooltipTasa && (
-              <p className="text-xs text-blue-500 mt-1.5 flex items-center gap-1">
-                <span>ℹ️</span> Se aplica directamente cada mes sin conversión.
-              </p>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={() => setMostrarTooltipTasa((v) => !v)}
+            className="mt-2 text-xs text-blue-500 hover:text-blue-700 flex items-center gap-1 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {mostrarTooltipTasa ? "Ocultar explicación" : "¿Cuál es la diferencia?"}
+          </button>
+          {mostrarTooltipTasa && (
+            <div className="mt-2 bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-800 space-y-1.5 animate-fade-in">
+              <p><strong>E.A. (Efectiva anual):</strong> La tasa real del año. Se convierte a mensual con <code className="bg-blue-100 px-1 rounded">(1+EA)^(1/12)−1</code>.</p>
+              <p><strong>N.M.V. (Nominal mensual vencida):</strong> Se aplica directamente cada mes sin conversión.</p>
+            </div>
+          )}
         </FormSection>
 
-        {/* ── 4. Sistema de amortización ── */}
-        <FormSection
-          icon="🔄"
-          title="Sistema de amortización"
-          hint="Define cómo se distribuye el pago de capital mes a mes."
-        >
+        {/* ── 4. Sistema ── */}
+        <FormSection icon="🔄" title="Sistema de amortización" hint="Define cómo se distribuye el pago de capital mes a mes.">
           <div className="grid grid-cols-1 gap-2">
             {(["frances", "abono_fijo"] as SistemaAmortizacion[]).map((sistema) => (
               <label
@@ -249,26 +236,18 @@ export default function CreditForm({ form, onChange, onReset, tipoCredito }: Pro
                 <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                   form.sistemaAmortizacion === sistema ? "border-blue-500" : "border-slate-300"
                 }`}>
-                  {form.sistemaAmortizacion === sistema && (
-                    <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  )}
+                  {form.sistemaAmortizacion === sistema && <div className="w-2 h-2 rounded-full bg-blue-500" />}
                 </div>
-                <input
-                  type="radio"
-                  name="sistema"
-                  value={sistema}
-                  checked={form.sistemaAmortizacion === sistema}
-                  onChange={() => set("sistemaAmortizacion", sistema)}
-                  className="sr-only"
-                />
+                <input type="radio" name="sistema" value={sistema} checked={form.sistemaAmortizacion === sistema}
+                  onChange={() => set("sistemaAmortizacion", sistema)} className="sr-only" />
                 <div>
                   <p className="text-sm font-semibold text-slate-800">
                     {sistema === "frances" ? "Cuota fija — Sistema Francés" : "Abono fijo a capital"}
                   </p>
                   <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
                     {sistema === "frances"
-                      ? "Pagas la misma cuota todos los meses. El interés disminuye y el capital aumenta gradualmente."
-                      : "Abonas la misma cantidad de capital cada mes. La cuota disminuye con el tiempo."}
+                      ? "Pagas la misma cuota todos los meses."
+                      : "El capital se abona en partes iguales. La cuota disminuye con el tiempo."}
                   </p>
                 </div>
               </label>
@@ -276,43 +255,43 @@ export default function CreditForm({ form, onChange, onReset, tipoCredito }: Pro
           </div>
         </FormSection>
 
-        {/* ── 5. Seguro mensual ── */}
-        <FormSection
-          icon="🛡️"
-          title="Seguro mensual"
-          hint="Si el crédito incluye seguro de vida o deudores, agrégalo aquí. Déjalo en 0 si no aplica."
-        >
+        {/* ── 5. Seguro ── */}
+        <FormSection icon="🛡️" title="Seguro mensual" hint="Seguro de vida o deudores. Déjalo en 0 si no aplica.">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label-base">Tipo de seguro</label>
-              <select
-                className="select-base"
-                value={form.tipoSeguro}
-                onChange={(e) => set("tipoSeguro", e.target.value as TipoSeguro)}
-              >
+              <select className="select-base" value={form.tipoSeguro}
+                onChange={(e) => set("tipoSeguro", e.target.value as TipoSeguro)}>
                 <option value="fijo">Valor fijo (COP/mes)</option>
                 <option value="porcentaje_saldo">% sobre saldo</option>
               </select>
             </div>
             <div>
-              <label className="label-base">
-                {form.tipoSeguro === "fijo" ? "Valor mensual" : "Porcentaje (%)"}
-              </label>
+              <label className="label-base">{form.tipoSeguro === "fijo" ? "Valor mensual" : "Porcentaje (%)"}</label>
               <div className="relative">
-                {form.tipoSeguro === "fijo" && (
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">$</span>
-                )}
-                <input
-                  type="number"
-                  min={0}
-                  step={form.tipoSeguro === "fijo" ? 1000 : 0.01}
-                  className={`input-base ${form.tipoSeguro === "fijo" ? "pl-8" : "pr-8"}`}
-                  placeholder={form.tipoSeguro === "fijo" ? "50.000" : "0.3"}
-                  value={form.valorSeguro || ""}
-                  onChange={(e) => set("valorSeguro", parseFloat(e.target.value) || 0)}
-                />
-                {form.tipoSeguro === "porcentaje_saldo" && (
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">%</span>
+                {form.tipoSeguro === "fijo" ? (
+                  <>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">$</span>
+                    <InputMoneda
+                      value={form.valorSeguro}
+                      onChange={(v) => set("valorSeguro", v)}
+                      placeholder="50.000"
+                      className="input-base pl-8"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      className="input-base pr-8"
+                      placeholder="0.3"
+                      value={form.valorSeguro || ""}
+                      onChange={(e) => set("valorSeguro", parseFloat(e.target.value) || 0)}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">%</span>
+                  </>
                 )}
               </div>
             </div>
@@ -320,11 +299,7 @@ export default function CreditForm({ form, onChange, onReset, tipoCredito }: Pro
         </FormSection>
 
         {/* ── 6. Costos adicionales ── */}
-        <FormSection
-          icon="📋"
-          title="Costos adicionales del crédito"
-          hint="Agrega estudio de crédito, aval, administración u otros cargos de la entidad."
-        >
+        <FormSection icon="📋" title="Costos adicionales del crédito" hint="Estudio de crédito, aval, administración u otros cargos.">
           <div className="space-y-2">
             {form.otrosCostos.map((costo) => (
               <div key={costo.id} className="bg-slate-50 border border-slate-100 rounded-xl p-3 space-y-2">
@@ -343,20 +318,19 @@ export default function CreditForm({ form, onChange, onReset, tipoCredito }: Pro
                     <label className="label-base">Valor (COP)</label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">$</span>
-                      <input
-                        type="number"
-                        min={0}
-                        className="input-base text-xs py-2 pl-6"
+                      <InputMoneda
+                        value={costo.valor}
+                        onChange={(v) => updateOtroCosto(costo.id, "valor", v)}
                         placeholder="0"
-                        value={costo.valor || ""}
-                        onChange={(e) => updateOtroCosto(costo.id, "valor", parseFloat(e.target.value) || 0)}
+                        className="input-base text-xs py-2 pl-6"
                       />
                     </div>
                   </div>
                   <div className="col-span-3 flex items-end">
                     <button
                       onClick={() => removeOtroCosto(costo.id)}
-                      className="w-full py-2 rounded-lg text-xs font-medium text-red-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100 transition-all"
+                      className="w-full py-2 rounded-lg text-xs font-medium text-red-400 hover:text-red-600
+                                 hover:bg-red-50 border border-transparent hover:border-red-100 transition-all"
                     >
                       Quitar
                     </button>
@@ -377,8 +351,9 @@ export default function CreditForm({ form, onChange, onReset, tipoCredito }: Pro
             ))}
             <button
               onClick={addOtroCosto}
-              className="w-full py-2.5 rounded-xl border-2 border-dashed border-slate-200 text-xs font-semibold text-slate-500
-                         hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50/50 transition-all duration-150 flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-xl border-2 border-dashed border-slate-200 text-xs font-semibold
+                         text-slate-500 hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50/50
+                         transition-all duration-150 flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -393,13 +368,8 @@ export default function CreditForm({ form, onChange, onReset, tipoCredito }: Pro
   );
 }
 
-function FormSection({
-  icon, title, hint, children,
-}: {
-  icon: string;
-  title: string;
-  hint: string;
-  children: React.ReactNode;
+function FormSection({ icon, title, hint, children }: {
+  icon: string; title: string; hint: string; children: React.ReactNode;
 }) {
   return (
     <div className="space-y-3">
@@ -410,9 +380,7 @@ function FormSection({
           <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{hint}</p>
         </div>
       </div>
-      <div className="pl-7">
-        {children}
-      </div>
+      <div className="pl-7">{children}</div>
     </div>
   );
 }

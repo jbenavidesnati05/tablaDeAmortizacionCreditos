@@ -8,6 +8,12 @@ import { calcularResumen, convertirTasaMensual, formatCOP } from "@/lib/finance"
 import { exportarCSV } from "@/utils/export";
 import type { FormularioCredito } from "@/types";
 
+const WHATSAPP_NUMBER = "573103917469";
+const WHATSAPP_MSG = encodeURIComponent(
+  "Hola, vi tu simulador de créditos y me gustó. Tengo una idea para una página web/app y quisiera contártela."
+);
+const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`;
+
 const FORM_INICIAL: FormularioCredito = {
   valorCredito: 0,
   plazoMeses: 0,
@@ -19,17 +25,8 @@ const FORM_INICIAL: FormularioCredito = {
   otrosCostos: [],
 };
 
-const TIPOS_CREDITO = [
-  { id: "libre",      label: "Libre inversión", icon: "💼" },
-  { id: "vehiculo",   label: "Vehículo",         icon: "🚗" },
-  { id: "educativo",  label: "Educativo",         icon: "🎓" },
-  { id: "hipotecario",label: "Hipotecario",       icon: "🏠" },
-  { id: "otro",       label: "Otro",              icon: "✦"  },
-];
-
 export default function Home() {
   const [form, setForm] = useState<FormularioCredito>(FORM_INICIAL);
-  const [tipoCredito, setTipoCredito] = useState("libre");
 
   const resumen = useMemo(() => {
     if (form.valorCredito <= 0 || form.plazoMeses <= 0) return null;
@@ -71,67 +68,51 @@ export default function Home() {
 
       {/* ── Hero ── */}
       <header className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
-        {/* decorative blobs */}
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-20 -right-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-12 -left-12 w-56 h-56 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-            <div className="flex-1">
-              <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-400/20 rounded-full px-3 py-1 mb-4">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-blue-300 text-xs font-medium tracking-wide">COP · E.A. o N.M.V. · Sistema Francés</span>
-              </div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
+        <div className="relative max-w-5xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+
+            {/* Izquierda: título */}
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
                 Simulador de Créditos
                 <span className="block text-blue-400">Colombia</span>
               </h1>
-              <p className="mt-3 text-slate-400 text-sm sm:text-base max-w-lg leading-relaxed">
-                Calcula cuotas, intereses, seguros y tabla de amortización en segundos. Resultados claros y educativos.
+              <p className="mt-2 text-slate-400 text-sm max-w-md leading-relaxed">
+                Calcula cuotas, intereses, seguros y tabla de amortización en segundos.
               </p>
             </div>
 
-            {/* Stats decorativos */}
-            <div className="flex sm:flex-col gap-3 sm:gap-2">
-              {[
-                { label: "Sistemas de amortización", val: "2" },
-                { label: "Tipos de tasa soportados", val: "2" },
-                { label: "Costos personalizables", val: "∞" },
-              ].map((s) => (
-                <div key={s.label} className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-center">
-                  <p className="text-2xl font-bold text-white">{s.val}</p>
-                  <p className="text-xs text-slate-500 leading-tight mt-0.5">{s.label}</p>
-                </div>
-              ))}
+            {/* Derecha: jbenavides.dev + WhatsApp */}
+            <div className="flex flex-col items-start sm:items-end gap-3 shrink-0">
+              <div className="sm:text-right">
+                <p className="text-slate-500 text-xs font-medium">Desarrollado por</p>
+                <p className="text-white font-bold text-base tracking-tight">jbenavides.dev</p>
+                <p className="text-blue-400 text-xs mt-0.5">Convertimos ideas en productos digitales</p>
+              </div>
+              <a
+                href={WHATSAPP_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 active:scale-[0.98]
+                           text-white text-xs font-bold px-4 py-2 rounded-xl transition-all duration-150
+                           shadow-lg shadow-green-900/30"
+              >
+                <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.118 1.532 5.845L.072 23.928l6.258-1.641A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.797 9.797 0 01-5.001-1.371l-.36-.213-3.714.974.99-3.617-.234-.372A9.778 9.778 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/>
+                </svg>
+                💡 ¿Tienes una idea en mente?
+              </a>
             </div>
+
           </div>
         </div>
       </header>
 
-      {/* ── Tipo de crédito ── */}
-      <div className="border-b border-slate-100 bg-white sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-            <span className="text-xs font-semibold text-slate-400 whitespace-nowrap mr-1 shrink-0">Tipo:</span>
-            {TIPOS_CREDITO.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTipoCredito(t.id)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 shrink-0 ${
-                  tipoCredito === t.id
-                    ? "bg-blue-600 text-white shadow-sm shadow-blue-200"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                <span>{t.icon}</span>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
 
         {/* ── Errores ── */}
         {errores.length > 0 && form.valorCredito > 0 && (
@@ -145,7 +126,7 @@ export default function Home() {
               <p className="text-sm font-semibold text-red-700 mb-1">Corrige los siguientes campos:</p>
               <ul className="space-y-0.5">
                 {errores.map((e) => (
-                  <li key={e} className="text-sm text-red-600 flex items-center gap-1">
+                  <li key={e} className="text-sm text-red-600 flex items-center gap-1.5">
                     <span className="w-1 h-1 rounded-full bg-red-400 shrink-0" />
                     {e}
                   </li>
@@ -158,12 +139,7 @@ export default function Home() {
         {/* ── Layout principal ── */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
           <div className="lg:col-span-2">
-            <CreditForm
-              form={form}
-              onChange={setForm}
-              onReset={handleReset}
-              tipoCredito={tipoCredito}
-            />
+            <CreditForm form={form} onChange={setForm} onReset={handleReset} />
           </div>
           <div className="lg:col-span-3">
             {listo && resumen ? (
@@ -186,17 +162,14 @@ export default function Home() {
                   <p className="text-xs font-semibold text-blue-200 uppercase tracking-widest mb-1">Resumen rápido</p>
                   <p className="text-sm sm:text-base leading-relaxed">
                     Solicitando{" "}
-                    <span className="font-bold text-white">{formatCOP(form.valorCredito)}</span>{" "}
-                    a{" "}
-                    <span className="font-bold">{form.plazoMeses} meses</span>,
-                    pagarías aproximadamente{" "}
+                    <span className="font-bold">{formatCOP(form.valorCredito)}</span>{" "}
+                    a <span className="font-bold">{form.plazoMeses} meses</span>, pagarías aproximadamente{" "}
                     <span className="font-bold text-emerald-300">{formatCOP(lecturaRapida.cuotaTotal)}/mes</span>{" "}
-                    y un total de{" "}
-                    <span className="font-bold">{formatCOP(resumen.totalPagado)}</span>.{" "}
+                    y un total de <span className="font-bold">{formatCOP(resumen.totalPagado)}</span>.{" "}
                     Los intereses representan el{" "}
                     <span className="font-bold text-yellow-300">{lecturaRapida.pctIntereses}%</span>{" "}
-                    del valor solicitado y el costo total del crédito equivale al{" "}
-                    <span className="font-bold text-orange-300">{lecturaRapida.pctCosto}%</span> adicional.
+                    del valor solicitado y el costo adicional equivale al{" "}
+                    <span className="font-bold text-orange-300">{lecturaRapida.pctCosto}%</span>.
                   </p>
                 </div>
               </div>
@@ -204,7 +177,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── Tabla de amortización ── */}
+        {/* ── Tabla ── */}
         {listo && resumen && (
           <div className="mt-6 animate-fade-up">
             <AmortizationTable tabla={resumen.tabla} onExportCSV={handleExportCSV} />
@@ -214,22 +187,50 @@ export default function Home() {
 
       {/* ── Footer ── */}
       <footer className="border-t border-slate-100 mt-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-7">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-6 h-6 rounded-lg bg-blue-600 flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <span className="text-sm font-semibold text-slate-700">Simulador de Créditos Colombia</span>
               </div>
-              <span className="text-sm font-semibold text-slate-700">Simulador de Créditos Colombia</span>
+              <p className="text-xs text-slate-400">Herramienta informativa. Los valores reales pueden variar.</p>
             </div>
-            <p className="text-xs text-slate-400 text-center sm:text-right max-w-md">
-              Herramienta informativa. Los valores reales pueden variar según la entidad financiera, seguros, comisiones y condiciones del crédito.
-            </p>
+            <div className="flex flex-col sm:items-end gap-3">
+              <div className="sm:text-right">
+                <p className="text-sm font-bold text-slate-800">jbenavides.dev</p>
+                <p className="text-xs text-slate-500 mt-0.5 max-w-xs sm:text-right leading-relaxed">
+                  Creamos soluciones tecnológicas para emprendedores y negocios: webs, apps y automatización que generan resultados reales.
+                </p>
+              </div>
+              <div className="flex flex-col sm:items-end gap-1.5">
+                <p className="text-xs font-semibold text-slate-600 italic">
+                  💡 Cuéntame tu idea y juntos la hacemos realidad.
+                </p>
+                <a
+                  href={WHATSAPP_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold
+                             px-4 py-2.5 rounded-xl transition-all duration-150 shadow-sm"
+                >
+                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.118 1.532 5.845L.072 23.928l6.258-1.641A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.797 9.797 0 01-5.001-1.371l-.36-.213-3.714.974.99-3.617-.234-.372A9.778 9.778 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/>
+                  </svg>
+                  Escríbeme por WhatsApp
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
+
+
     </div>
   );
 }
@@ -260,18 +261,16 @@ function EmptyState() {
           </div>
         ))}
       </div>
-      <div className="w-full max-w-xs">
-        <div className="flex gap-1.5 items-center justify-center text-xs text-slate-400">
-          {["Monto", "Plazo", "Tasa", "Resultado"].map((step, i) => (
-            <div key={step} className="flex items-center gap-1.5">
-              <div className="flex items-center gap-1">
-                <div className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-400">{i + 1}</div>
-                <span>{step}</span>
-              </div>
-              {i < 3 && <span className="text-slate-300">›</span>}
+      <div className="flex gap-1.5 items-center justify-center text-xs text-slate-400">
+        {["Monto", "Plazo", "Tasa", "Resultado"].map((step, i) => (
+          <div key={step} className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
+              <div className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-400">{i + 1}</div>
+              <span>{step}</span>
             </div>
-          ))}
-        </div>
+            {i < 3 && <span className="text-slate-300">›</span>}
+          </div>
+        ))}
       </div>
     </div>
   );
