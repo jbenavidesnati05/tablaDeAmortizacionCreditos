@@ -3,50 +3,85 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-  body {
-    @apply bg-slate-50 text-slate-800;
-  }
+  html { scroll-behavior: smooth; }
+  body { @apply bg-slate-50 text-slate-900 antialiased; }
 }
 
 @layer components {
+  /* ── Cards ── */
   .card {
-    @apply bg-white rounded-2xl shadow-sm border border-slate-100 p-6;
+    @apply bg-white rounded-2xl shadow-sm border border-slate-100/80 p-6;
   }
+
+  /* ── Inputs ── */
   .input-base {
-    @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400
-           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-           transition-all duration-200;
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900
+           placeholder-slate-400 transition-all duration-200
+           hover:border-slate-300
+           focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400;
   }
+
+  /* ── Selects ── */
   .select-base {
-    @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800
-           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-           transition-all duration-200 cursor-pointer;
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900
+           transition-all duration-200 cursor-pointer
+           hover:border-slate-300
+           focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 14px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 42px;
   }
+
+  /* ── Labels ── */
   .label-base {
-    @apply block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide;
+    @apply block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider;
   }
+
+  /* ── Buttons ── */
   .btn-primary {
-    @apply inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white
-           hover:bg-blue-700 active:scale-95 transition-all duration-150 shadow-sm;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5
+           text-sm font-semibold text-white shadow-sm shadow-blue-200
+           hover:bg-blue-700 active:scale-[0.98] transition-all duration-150;
   }
   .btn-secondary {
-    @apply inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700
-           border border-slate-200 hover:bg-slate-50 active:scale-95 transition-all duration-150 shadow-sm;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5
+           text-sm font-semibold text-slate-700 border border-slate-200
+           hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition-all duration-150;
   }
-  .btn-danger {
-    @apply inline-flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-600
-           border border-red-100 hover:bg-red-100 active:scale-95 transition-all duration-150;
+  .btn-ghost-danger {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5
+           text-xs font-semibold text-slate-400 hover:text-red-500 hover:bg-red-50
+           transition-all duration-150;
   }
-  .summary-card {
-    @apply bg-white rounded-xl border border-slate-100 p-4 shadow-sm flex flex-col gap-1;
-  }
+
+  /* ── Table ── */
   .table-th {
-    @apply px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap;
+    @apply px-4 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider
+           whitespace-nowrap bg-slate-50/80;
   }
   .table-td {
-    @apply px-3 py-2.5 text-sm text-slate-700 whitespace-nowrap;
+    @apply px-4 py-3 text-sm text-slate-700 whitespace-nowrap;
   }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    animation: fadeUp 0.35s ease-out both;
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.25s ease-out both;
+  }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
