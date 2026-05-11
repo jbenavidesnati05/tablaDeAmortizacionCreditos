@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Fondo azul redondeado -->
+  <rect width="64" height="64" rx="14" fill="#1d4ed8"/>
+
+  <!-- Moneda exterior -->
+  <circle cx="32" cy="32" r="20" fill="none" stroke="#93c5fd" stroke-width="2.5" opacity="0.5"/>
+
+  <!-- Moneda interior rellena -->
+  <circle cx="32" cy="32" r="16" fill="#2563eb"/>
+
+  <!-- Símbolo peso colombiano: $ con líneas horizontales -->
+  <text
+    x="32" y="43"
+    text-anchor="middle"
+    fill="white"
+    font-size="28"
+    font-weight="900"
+    font-family="Arial Black, Arial, sans-serif"
+    letter-spacing="-1">$</text>
+
+  <!-- Líneas horizontales del peso colombiano -->
+  <line x1="26" y1="18" x2="38" y2="18" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="26" y1="23" x2="38" y2="23" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+</svg>
